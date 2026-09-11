@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
     "typecheck": "tsc --noEmit"
   },
@@ -21,7 +21,6 @@
   "dependencies": {
     "@langchain/core": "^1.2.10",
     "deepagents": "^1.13.4",
-    "langchain": "^1.5.11",
-    "pdf2md": "^1.0.2"
+    "langchain": "^1.5.11"
   }
 }

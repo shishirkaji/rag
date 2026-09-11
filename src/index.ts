@@ -1,5 +1,3 @@
-function greet(name: string): string {
-  return `Hello, ${name}!`;
-}
+import { main } from "./pipeline.js";
 
-console.log(greet("TypeScript"));
+main()
