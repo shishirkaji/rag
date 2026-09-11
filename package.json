@@ -17,5 +17,11 @@
     "@types/node": "^24.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.2.10",
+    "deepagents": "^1.13.4",
+    "langchain": "^1.5.11",
+    "pdf2md": "^1.0.2"
   }
 }
