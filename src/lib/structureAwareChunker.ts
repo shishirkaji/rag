@@ -1,17 +1,30 @@
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { splitMarkdownByHeadings } from "./splitMarkdownByHeadings.js";
+import { deriveChunkId } from "./documentIdentity.js";
 
 // Metadata attached to every structure-aware chunk. The "Header N" keys
 // mirror the document's heading hierarchy (H1/H2/H3), so downstream steps
 // (embedding, retrieval) can filter or weight chunks by section.
+//
+// `documentIds` is an array so identical content shared across documents can
+// reference the same chunk points (dedup); `fileHash` fingerprints the source
+// content so the pipeline can detect changes and duplicates.
 export interface StructuredChunkMetadata {
+  documentIds: string[];
+  fileHash: string;
   source?: string;
   "Header 1"?: string;
   "Header 2"?: string;
   "Header 3"?: string;
   chunkIndex: number;
   [key: string]: unknown;
+}
+
+/** Stable identity attached to every chunk produced for a given document. */
+export interface ChunkIdentity {
+  documentIds: string[];
+  fileHash: string;
 }
 
 export interface ChunkOptions {
@@ -31,6 +44,7 @@ export interface ChunkOptions {
  */
 export async function createStructuredChunks(
   doc: Document,
+  identity: ChunkIdentity,
   options: ChunkOptions = {}
 ): Promise<Document<StructuredChunkMetadata>[]> {
   const chunkSize = options.chunkSize ?? 500;
@@ -60,8 +74,12 @@ export async function createStructuredChunks(
     for (const subChunk of subChunks) {
       chunks.push(
         new Document({
+          // Stable, content-derived point id so re-runs upsert in place.
+          id: deriveChunkId(subChunk.pageContent),
           pageContent: subChunk.pageContent,
           metadata: {
+            documentIds: identity.documentIds,
+            fileHash: identity.fileHash,
             source,
             ...section.headers,
             chunkIndex: chunkIndex++,

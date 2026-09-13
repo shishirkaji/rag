@@ -1,23 +1,37 @@
 import { QdrantVectorStore } from "@langchain/qdrant";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { Document } from "langchain";
-import { StructuredChunkMetadata } from "./structureAwareChunker.js";
+import type { OpenAIEmbeddings } from "@langchain/openai";
+import type { Document } from "@langchain/core/documents";
+import type { StructuredChunkMetadata } from "./structureAwareChunker.js";
+import { QDRANT_URL, COLLECTION_NAME } from "./qdrant.js";
 
-export async function storeChunksInQdrant(chunks:Document<StructuredChunkMetadata>[]) {
-  const embeddings = new OpenAIEmbeddings({
-    modelName: "text-embedding-3-small",
+/**
+ * Store precomputed embedding vectors and their chunks into a local Qdrant
+ * instance (running as a Docker container on your Mac).
+ *
+ * Accepting the vectors (rather than embedding them here) keeps this step
+ * storage-only: the pipeline embeds once with `embedChunks` and passes the
+ * result in, so chunks are never embedded twice.
+ *
+ * @param chunks The chunks whose content/metadata become the point payloads.
+ * @param embeddings The embeddings instance used to configure the vector store.
+ * @param vectors One vector per chunk, in the same order as `chunks`.
+ * @returns The configured vector store.
+ */
+export async function storeChunksInQdrant(
+  chunks: Document<StructuredChunkMetadata>[],
+  embeddings: OpenAIEmbeddings,
+  vectors: number[][],
+): Promise<QdrantVectorStore> {
+  const vectorStore = new QdrantVectorStore(embeddings, {
+    url: QDRANT_URL,
+    collectionName: COLLECTION_NAME,
   });
 
-  // Connects directly to the Docker container running on your Mac
-  const vectorStore = await QdrantVectorStore.fromDocuments(
-    chunks,
-    embeddings,
-    {
-      url: "http://localhost:6333",
-      collectionName: "local_rag_collection",
-    }
-  );
+  // `addVectors` ensures the collection exists, then upserts the points. Each
+  // chunk already carries a stable `id`, so re-running overwrites in place
+  // instead of appending duplicates.
+  await vectorStore.addVectors(vectors, chunks);
 
-  console.log("Successfully stored in local Qdrant!");
+  console.log(`Successfully stored ${chunks.length} chunks in local Qdrant!`);
   return vectorStore;
 }
