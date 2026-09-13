@@ -12,7 +12,11 @@ def pdf_to_md(pdf_filename: str) -> str:
     Returns:
         The generated Markdown text (also written to stdout).
     """
-    md_text = pymupdf4llm.to_markdown(pdf_filename)
+    md_text = pymupdf4llm.to_markdown(
+        pdf_filename,
+        ignore_graphics=True,
+        ignore_images=True,
+    )
     print(md_text)
     return md_text
 
