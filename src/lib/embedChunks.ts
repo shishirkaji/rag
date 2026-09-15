@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import type { Document } from "@langchain/core/documents";
 
@@ -9,15 +10,16 @@ export const EMBEDDING_MODEL_NAME = "text-embedding-3-small";
 /**
  * Create the OpenAI embeddings model used throughout the pipeline.
  *
- * Reads the API key from the environment (`OPEN_AI_KEY`) so no secrets are
- * hardcoded here. Callers that need to embed documents *and* store them can
- * pass the returned instance to both steps so the model is only configured
- * once.
+ * Reads the API key from the environment (`OPENAI_API_KEY`) so no secrets are
+ * hardcoded here. `import "dotenv/config"` above loads the local `.env` into
+ * `process.env` so the key is actually available at runtime. Callers that need
+ * to embed documents *and* store them can pass the returned instance to both
+ * steps so the model is only configured once.
  */
 export function createEmbeddings(): OpenAIEmbeddings {
   return new OpenAIEmbeddings({
     modelName: EMBEDDING_MODEL_NAME,
-    apiKey: process.env.OPEN_AI_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
   });
 }
 
