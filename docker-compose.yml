@@ -2,7 +2,7 @@ services:
   qdrant:
     image: qdrant/qdrant
     container_name: qdrant
-    restart: unless-stopped
+    restart: always
     ports:
       - "6333:6333"
       - "6334:6334"
