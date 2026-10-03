@@ -26,9 +26,8 @@ import {
 } from "./lib/documentOps.js";
 import type { IngestContext } from "./lib/documentOps.js";
 
-export const main = async () => {
+export const main = async (pdfSource = "src/ragData/construction_contract.pdf") => {
   // 1) import pdf
-  const pdfSource = "src/data/depron_micro_aerodynamics.pdf";
   const filename = path.basename(pdfSource);
   const fileExistsAtSource = existsSync(pdfSource);
 
